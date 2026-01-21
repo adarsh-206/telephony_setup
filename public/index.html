@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Dialer Tool</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            max-width: 550px;
+            width: 100%;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .description {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.2s, ring 0.2s;
+            outline: none;
+            background: #fcfcfc;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+            padding: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .checkbox-wrapper {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            border: 1px solid #dbeafe;
+            text-align: center;
+        }
+
+        .log {
+            margin-top: 20px;
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .success {
+            color: #4ade80;
+            margin-bottom: 4px;
+        }
+
+        .error {
+            color: #f87171;
+            margin-bottom: 4px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Bulk API Dialer</h2>
+        <p class="description">Paste your numbers below and configure your endpoint settings.</p>
+
+        <label for="phoneNumbers">Phone Numbers</label>
+        <textarea id="phoneNumbers" placeholder="Enter numbers here...">
+6261439534</textarea>
+
+        <div class="controls-grid">
+            <div class="control-item">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="useLocalhost">
+                    <span>Use Localhost</span>
+                </label>
+            </div>
+            <div class="control-item">
+                <label for="duration">Duration (s)</label>
+                <input type="number" id="duration" value="25">
+            </div>
+        </div>
+
+        <button id="startBtn" onclick="processCalls()">Start Bulk Calls</button>
+
+        <div id="status"></div>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        async function processCalls() {
+            const input = document.getElementById('phoneNumbers').value;
+            const logDiv = document.getElementById('log');
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('startBtn');
+            const isLocal = document.getElementById('useLocalhost').checked;
+            const maxDuration = parseInt(document.getElementById('duration').value) || 25;
+
+            const apiUrl = isLocal
+                ? 'http://localhost:3024/api/call/outbound'
+                : 'https://clara.claritel.ai/api/dialer/calls/create';
+
+            const numbers = input.split(/[\n,]+/).map(num => num.trim()).filter(num => num.length > 0);
+
+            if (numbers.length === 0) {
+                alert("Please enter at least one phone number.");
+                return;
+            }
+
+            btn.disabled = true;
+            statusDiv.style.display = 'block';
+            logDiv.style.display = 'block';
+            logDiv.innerHTML = '';
+
+            for (let i = 0; i < numbers.length; i++) {
+                const number = numbers[i];
+                statusDiv.innerText = `Sending ${i + 1} of ${numbers.length}: ${number}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            "To": number,
+                            "From": "8071108792",
+                            "socketUrl": "ws://localhost:3080",
+                            "HangupUrl": "https://humble-galaxy-71.webhook.cool",
+                            "maxCallDuration": maxDuration
+                        })
+                    });
+
+                    if (response.ok) {
+                        addLog(number, "Success", "success");
+                    } else {
+                        addLog(number, `Failed (${response.status})`, "error");
+                    }
+                } catch (error) {
+                    addLog(number, `Error: ${error.message}`, "error");
+                }
+            }
+
+            statusDiv.innerText = "✓ All calls processed";
+            statusDiv.style.background = "#f0fdf4";
+            statusDiv.style.color = "#166534";
+            statusDiv.style.borderColor = "#bbf7d0";
+            btn.disabled = false;
+        }
+
+        function addLog(number, message, className) {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = className;
+            entry.innerText = `> ${number}: ${message}`;
+            logDiv.prepend(entry);
+        }
+    </script>
+</body>
+
+</html>

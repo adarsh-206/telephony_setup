@@ -1,0 +1,25 @@
+{
+  "name": "new_telephony",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "ari-client": "^2.2.0",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dgram": "^1.0.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.11",
+    "prism-media": "^1.3.5",
+    "ws": "^8.19.0"
+  }
+}
